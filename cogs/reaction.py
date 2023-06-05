@@ -1,12 +1,21 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import discord
 from discord.ext import commands
 
+if TYPE_CHECKING:
+    from bot import IITMBot
+    from _types import Context
+
+
 class Reaction(commands.Cog):
-    def __init__(self,client):
-        self.client=client
+    def __init__(self, bot: IITMBot):
+        self.bot = bot
 
     @commands.Cog.listener()
-    async def on_raw_reaction_add(self,payload):
+    async def on_raw_reaction_add(self,payload: discord.RawReactionActionEvent):
         """
         React to a message with a specific emoji to assign or remove roles from a member.
         If the emoji is 🇩, remove all subject roles from the member and add the roles "Foundational Alumni" and "Diploma".
@@ -22,9 +31,10 @@ class Reaction(commands.Cog):
             
             if payload.emoji.name=='🇩':
                 
-                guild=self.client.guilds[0]
+                guild=self.bot.guilds[0]
                 member = guild.get_member(payload.user_id)
                 diploma=discord.utils.get(guild.roles,name='Diploma')
+                assert member and diploma
                 if diploma in member.roles:
                     return
                 for subject_role in subject_roles:

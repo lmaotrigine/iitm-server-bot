@@ -1,0 +1,15 @@
+[tool.black]
+skip-string-normalization = true
+line-length = 120
+python-version = "py38"
+
+[tool.isort]
+profile = "black"
+lines_after_imports = 2
+combine_as_imports = true
+combine_star = true
+
+[tool.pyright]
+pythonVersion = "3.8"
+typeCheckingMode = "strict"
+reportMissingTypeStubs = false

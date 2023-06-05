@@ -1,6 +1,13 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Optional
+
 import discord
 from discord import app_commands
 from discord.ext import commands
+
+if TYPE_CHECKING:
+    from bot import IITMBot
 
 
 class Slash(commands.Cog):
@@ -8,13 +15,13 @@ class Slash(commands.Cog):
     This Class is for Slash Commands.
     """
 
-    def __init__(self, bot):
+    def __init__(self, bot: IITMBot):
         self.bot = bot
 
     # Help Command (Ephemeral)
     @app_commands.command(name='help', description='Displays list of commands and their usage')
     @app_commands.describe(command="Input Command Name")
-    async def help(self, interaction: discord.Interaction, command: str=None):
+    async def help(self, interaction: discord.Interaction, command: Optional[str] = None):
         """
         Displays list of commands and their usage
         """
@@ -31,5 +38,5 @@ class Slash(commands.Cog):
         await interaction.response.send_message(embed=output, ephemeral=True)
 
 
-async def setup(bot):
+async def setup(bot: IITMBot):
     await bot.add_cog(Slash(bot))

@@ -1,10 +1,17 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from bot import IITMBot
+    from _types import Context
+
+
 import config
 import discord
 from discord.ext import commands
 
 from utils.helper import admin_only, verification_embed_dm
-
-
 class Menu(discord.ui.View):
     """
     A Discord UI view that displays a menu for EMAIL VERIFICATION.
@@ -20,23 +27,23 @@ class Menu(discord.ui.View):
 
 class Verification(commands.Cog):
 
-    def __init__(self,bot) -> None:
+    def __init__(self, bot: IITMBot) -> None:
         self.bot = bot
 
     @commands.command()
     @admin_only()
-    async def create(self,ctx):
+    async def create(self,ctx: Context):
         await ctx.channel.send("Join our exclusive community and gain access to private channels and premium content by verifying your email address. Click the button below to complete the process and unlock all the benefits of being a part of our server.", view=Menu())
 
     @commands.command()
     @admin_only()
-    async def send(self, ctx):
+    async def send(self, ctx: Context):
         embed=verification_embed_dm()
         await ctx.author.send(embed=embed)
 
 
     @commands.Cog.listener()
-    async def on_message(self, message):
+    async def on_message(self, message: discord.Message):
         if message.channel.id != config.AUTOMATE_CHANNEL:
             return
         # Compare with ID of Webhook used by Webapp to send the msg
@@ -49,7 +56,9 @@ class Verification(commands.Cog):
             user_id = int(user_id)
 
             guild = self.bot.get_guild(762774569827565569) # ID of the server
+            assert guild
             user = guild.get_member(user_id)
+            assert user
             
             _roles = {
                 'f': 780875583214321684, # Foundational
@@ -81,5 +90,5 @@ class Verification(commands.Cog):
             embed = verification_embed_dm()
             await user.send(embed=embed)
 
-async def setup(bot):
+async def setup(bot: IITMBot):
     await bot.add_cog(Verification(bot))
