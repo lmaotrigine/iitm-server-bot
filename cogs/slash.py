@@ -25,16 +25,19 @@ class Slash(commands.Cog):
         """
         Displays list of commands and their usage
         """
-        if command=='help':
-            output=discord.Embed(title="Help",description="Displays list of commands and their usage",color=0x00ff00)
+        if command == 'help':
+            output = discord.Embed(
+                title="Help", description="Displays list of commands and their usage", color=0x00FF00
+            )
         elif not command:
-            output=discord.Embed(
+            output = discord.Embed(
                 title="Help",
                 description="""Displays list of commands and their usage
                 Help: Displays list of commands and their usage""",
-                color=0x00ff00)
+                color=0x00FF00,
+            )
         else:
-            output=discord.Embed(title="Error",description="Command not found",color=0xff0000)
+            output = discord.Embed(title="Error", description="Command not found", color=0xFF0000)
         await interaction.response.send_message(embed=output, ephemeral=True)
 
 

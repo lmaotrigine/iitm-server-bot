@@ -7,7 +7,6 @@ from bot import IITMBot, log_setup
 
 async def main():
     with log_setup():
-
         logger = logging.getLogger("Startbot")
         dotenv.load_dotenv()
         bot = IITMBot._use_default()

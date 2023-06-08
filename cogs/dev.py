@@ -3,8 +3,9 @@ import logging
 import math
 import textwrap
 import traceback
-import logging
 import config
+
+from typing import TYPE_CHECKING, Any, Callable, Coroutine, Dict
 
 import discord
 from discord.ext.commands.errors import ExtensionNotFound
@@ -12,9 +13,11 @@ from discord.ext import commands
 
 from contextlib import redirect_stdout
 
-
+if TYPE_CHECKING:
+    from bot import IITMBot
+    from ._types import Context
 class Dev(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: IITMBot):
         self.logger = logging.getLogger("Dev")
         self.bot = bot
 
@@ -31,16 +34,16 @@ class Dev(commands.Cog):
 
         return content.strip("`\n")
 
-    def get_syntax_error(self, e):
+    def get_syntax_error(self, e: SyntaxError):
         if e.text is None:
             return f"```py\n{e.__class__.__name__}: {e}\n```"
         return f'```py\n{e.text}{"^":>{e.offset}}\n{e.__class__.__name__}: {e}```'
 
     @commands.is_owner()
     @commands.command(name="eval")
-    async def eval(self, ctx: commands.Context, *, body: str):
+    async def eval(self, ctx: Context, *, body: str):
         """Evaluates a code"""
-        env = {
+        env: Dict[str, Any] = {
             "bot": self.bot,
             "ctx": ctx,
             "channel": ctx.channel,
@@ -63,7 +66,7 @@ class Dev(commands.Cog):
         except Exception as e:
             return await ctx.send(f"```py\n{e.__class__.__name__}: {e}\n```")
 
-        func = env["func"]
+        func: Callable[..., Coroutine[Any, Any, Any]] = env["func"]
         try:
             with redirect_stdout(stdout):
                 ret = await func()
@@ -86,9 +89,7 @@ class Dev(commands.Cog):
                             f"Returned over 2k chars, sending as file instead.\n"
                             f"(first 1.5k chars for quick reference)\n"
                             f"```py\n{value[0:1500]}\n```",
-                            file=discord.File(
-                                io.BytesIO(value.encode()), filename="output.txt"
-                            ),
+                            file=discord.File(io.BytesIO(value.encode()), filename="output.txt"),
                         )
                     else:
                         await ctx.send(f"```py\n{value}\n```")
@@ -100,27 +101,25 @@ class Dev(commands.Cog):
                         f"Returned over 2k chars, sending as file instead.\n"
                         f"(first 1.5k chars for quick reference)\n"
                         f'```py\n{f"{value}{ret}"[0:1500]}\n```',
-                        file=discord.File(
-                            io.BytesIO(f"{value}{ret}".encode()), filename="output.txt"
-                        ),
+                        file=discord.File(io.BytesIO(f"{value}{ret}".encode()), filename="output.txt"),
                     )
                 else:
                     await ctx.send(f"```py\n{value}{ret}\n```")
 
     @commands.is_owner()
     @commands.command(name="reload", hidden=True)
-    async def reload(self, ctx: commands.Context, *, module_name: str):
+    async def reload(self, ctx: Context, *, module_name: str):
         """Reload a module"""
         try:
             try:
                 await self.bot.unload_extension(module_name)
-            except discord.ext.commands.errors.ExtensionNotLoaded as enl:
+            except commands.errors.ExtensionNotLoaded:
                 await ctx.send(f"Module not loaded. Trying to load it.", delete_after=6)
 
             await self.bot.load_extension(module_name)
             await ctx.send("Module Loaded")
 
-        except ExtensionNotFound as enf:
+        except ExtensionNotFound:
             await ctx.send(
                 f"Module not found. Possibly, wrong module name provided.",
                 delete_after=10,
@@ -131,22 +130,20 @@ class Dev(commands.Cog):
 
     @commands.command(hidden=True)
     @commands.is_owner()
-    async def kill(self, ctx: commands.Context):
+    async def kill(self, ctx: Context):
         """Kill the bot"""
         await ctx.send("Bravo 6, going dark o7")
         await self.bot.close()
 
     @commands.command()
     @commands.is_owner()
-    async def sync_apps(self, ctx: commands.Context):
-
+    async def sync_apps(self, ctx: Context):
         await ctx.bot.tree.sync(guild=discord.Object(config.PRIMARY_GUILD_ID))
         await ctx.reply("Synced local guild commands")
 
     @commands.command()
     @commands.is_owner()
-    async def clear_apps(self, ctx: commands.Context):
-
+    async def clear_apps(self, ctx: Context):
         ctx.bot.tree.clear_commands(guild=discord.Object(config.PRIMARY_GUILD_ID))
         ctx.bot.tree.clear_commands(guild=None)
         await ctx.bot.tree.sync(guild=discord.Object(config.PRIMARY_GUILD_ID))
@@ -155,5 +152,5 @@ class Dev(commands.Cog):
         await ctx.send("cleared all commands")
 
 
-async def setup(bot):
+async def setup(bot: IITMBot):
     await bot.add_cog(Dev(bot))

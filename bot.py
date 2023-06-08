@@ -10,11 +10,12 @@ from logging.handlers import TimedRotatingFileHandler
 
 import discord
 from discord.ext import commands
-from discord import app_commands 
+from discord import app_commands
 
 from contextlib import contextmanager, suppress
 
 logger = logging.getLogger("Bot")
+
 
 @contextmanager
 def log_setup():
@@ -35,12 +36,10 @@ def log_setup():
         # Add custom logging handlers like rich, maybe in the future??
         handlers = [
             TimedRotatingFileHandler(filename="logs/bot.log", when="d", interval=5),
-            logging.StreamHandler(sys.stdout)
+            logging.StreamHandler(sys.stdout),
         ]
 
-        fmt = logging.Formatter(
-            "[{asctime}] [{levelname:<7}] {name}: {message}", dtfmt, style="{"
-        )
+        fmt = logging.Formatter("[{asctime}] [{levelname:<7}] {name}: {message}", dtfmt, style="{")
 
         for handler in handlers:
             handler.setFormatter(fmt)
@@ -52,6 +51,7 @@ def log_setup():
         for handler in handlers:
             handler.close()
             logger.removeHandler(handler)
+
 
 class BotTree(app_commands.CommandTree):
     """
@@ -66,10 +66,7 @@ class BotTree(app_commands.CommandTree):
 
         channel = await interaction.client.fetch_channel(config.DEV_LOGS_CHANNEL)
         traceback_txt = "".join(TracebackException.from_exception(err).format())
-        file = discord.File(
-            io.BytesIO(traceback_txt.encode()),
-            filename=f"{type(err)}.txt"
-        )
+        file = discord.File(io.BytesIO(traceback_txt.encode()), filename=f"{type(err)}.txt")
 
         embed = discord.Embed(
             title="Unhandled Exception Alert",
@@ -77,14 +74,12 @@ class BotTree(app_commands.CommandTree):
             Invoked Channel: {interaction.channel.name} 
             \nInvoked User: {interaction.user.display_name} 
             \n```{traceback_txt[2000:].strip()}```                 
-            """
+            """,
         )
 
         await channel.send(embed=embed, file=file)
 
-    async def on_error(
-        self, interaction: discord.Interaction, error: app_commands.AppCommandError
-    ):
+    async def on_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):
         """Handles errors thrown within the command tree"""
         try:
             await self.log_to_channel(interaction, error)
@@ -94,12 +89,12 @@ class BotTree(app_commands.CommandTree):
 
 class IITMBot(commands.AutoShardedBot):
     """
-    Main bot. invoked in runner (main.py) 
+    Main bot. invoked in runner (main.py)
     """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        
+
     @classmethod
     def _use_default(cls, *args):
         """
@@ -107,9 +102,7 @@ class IITMBot(commands.AutoShardedBot):
         """
 
         intents = discord.Intents.all()
-        activity = discord.Activity(
-            type=discord.ActivityType.watching, name=config.DEFAULT_ACTIVITY_TEXT
-        )
+        activity = discord.Activity(type=discord.ActivityType.watching, name=config.DEFAULT_ACTIVITY_TEXT)
 
         x = cls(
             command_prefix=config.BOT_PREFIX,
@@ -117,10 +110,9 @@ class IITMBot(commands.AutoShardedBot):
             owner_id=config.OWNER_ID,
             activity=activity,
             help_command=None,
-            tree_cls=BotTree
+            tree_cls=BotTree,
         )
         return x
-
 
     async def load_extensions(self, *args):
         for filename in os.listdir("cogs/"):
